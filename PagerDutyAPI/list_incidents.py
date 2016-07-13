@@ -29,8 +29,9 @@ import requests
 import json
 import pprint
 
+
 # Update to match your API key
-API_KEY = '#'
+API_KEY = '1NL53_66v5-9CTqSGRJF'
 
 # Update to match your chosen parameters
 SINCE = ''
@@ -46,8 +47,11 @@ TIME_ZONE = 'UTC'
 SORT_BY = []
 INCLUDE = []
 
+def get_incidents_for_service(serviceid):
+    list_incidents()
+
 def list_incidents():
-    url = 'https://api.pagerduty.com/incidents'
+    url = 'https://api.pagerduty.com/incidents?total=true'
     headers = {
         'Accept': 'application/vnd.pagerduty+json;version=2',
         'Authorization': 'Token token=' + API_KEY
