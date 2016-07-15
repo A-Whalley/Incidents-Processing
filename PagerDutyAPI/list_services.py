@@ -28,6 +28,9 @@
 import requests
 import json
 import pprint
+import requests
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 # Update to match your API key
 API_KEY = '1NL53_66v5-9CTqSGRJF'

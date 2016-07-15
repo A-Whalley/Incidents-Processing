@@ -28,10 +28,10 @@
 import requests
 import json
 import pprint
-
+import datetime
 
 # Update to match your API key
-API_KEY = '1NL53_66v5-9CTqSGRJF'
+API_KEY = '#'
 
 # Update to match your chosen parameters
 SINCE = ''
@@ -47,11 +47,21 @@ TIME_ZONE = 'UTC'
 SORT_BY = []
 INCLUDE = []
 
-def get_incidents_for_service(serviceid):
-    list_incidents()
+limitvalue = 100
+def get_url(offsetvalue): #, queryserviceid):
+    return 'https://api.pagerduty.com/incidents?total=true&limit=' + str(limitvalue) + '&offset=' + str(offsetvalue) + '&statuses%5B%5D=resolved&service_ids%5B%5D=PUPGFY0'# + str(queryserviceid)
+
+#def get_incidents_for_service(serviceid):
+    #list_incidents(serviceid)
+
+def get_date(date_time):
+    return datetime.datetime.strptime(date_time, "%Y-%m-%dT%H:%M:%SZ")
+
+def get_sec(s):
+    l = s.split(':')
+    return int(l[0]) * 3600 + int(l[1]) * 60 + int(l[2])
 
 def list_incidents():
-    url = 'https://api.pagerduty.com/incidents?total=true'
     headers = {
         'Accept': 'application/vnd.pagerduty+json;version=2',
         'Authorization': 'Token token=' + API_KEY
@@ -70,9 +80,46 @@ def list_incidents():
         'sort_by': SORT_BY,
         'include': INCLUDE
     }
-    r = requests.get(url, headers=headers, params=json.dumps(payload))
+
+    offsetby = 0
+
+    r = requests.get(get_url(offsetby), headers=headers)
     pprint.pprint('Status Code: ' + str(r.status_code))
-    pprint.pprint(r.json())
+    incidents = r.json()['incidents']
+    pprint.pprint((r.json()['limit'], r.json()['offset'], r.json()['more'], r.json()['total']))
+    while r.json()['more'] == True:
+        offsetby = offsetby + limitvalue
+        print(r.json()['limit'], r.json()['offset'])
+        r = requests.get(get_url(offsetby), headers=headers)
+        incidents = incidents + r.json()['incidents']
+    for incident in incidents:
+        creation_time = incident['created_at']
+        #pprint.pprint(incident['id'])
+        resolution_time = incident['last_status_change_at']
+
+        #time1
+        #2015-11-10T01:02:52Z
+        #0123_56_89____45_78_
+        resolution_datetime = get_date(resolution_time)
+        creation_datetime = get_date(creation_time)
+        time_to_resolve_str = get_sec(str(resolution_datetime - creation_datetime))
+        time_to_resolve = int(time_to_resolve_str)
+        print('resolved in:', time_to_resolve, 'seconds')
+        #print('created at:  ', creation_datetime)
+        #resolution_datetime.utcfromtimestamp(0)
+        #time1 = (resolution_time[0:4], resolution_time[5:7], resolution_time[8:10], + resolution_time[14:16], resolution_time[17:19])
+        #time1 = tuple(map(int, time1))
+        #print(time1)
+        #time1 = datetime.datetime(time1)
+        #time2 = (creation_time[0:4], creation_time[6:7], creation_time[9:0], creation_time[15:16], creation_time[18:19])
+        #time2 = int(time2)
+        #time2 = datetime.datetime(time2)
+        #time1_seconds = (time1-datetime.datetime(1970,1,1)).total_seconds()
+        #time2_seconds = (time2-datetime.datetime(1970,1,1)).total_seconds()
+        #time_to_resolve = time1_seconds - time2_seconds
+        #print(time_to_resolve)
+        #time_to_resolve = resolution_time - creation_time
+        print(incident['id'])#, time_to_resolve)
 
 if __name__ == '__main__':
     list_incidents()
